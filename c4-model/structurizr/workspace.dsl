@@ -4,7 +4,6 @@ workspace {
 
     model {
 
-        # Настраиваем возможность создания вложенных груп
         properties { 
             structurizr.groupSeparator "/"
         }
@@ -14,11 +13,11 @@ workspace {
         }
 
         shop_owner = person "Владелец интернет-магазина" {
-            description "Владелец интернет магазина, добавляющий товары в базу"
+            description "Владелец интернет магазина, добавляющий в него товары"
         }
 
         online_shop = softwareSystem "Интернет-магазин" {
-            description "Интернет-магазин, где пользователь может купить товар, а владелец - добавить его в базу"
+            description "Интернет-магазин, позволяющий пользователю просматривать товары и добавлять их в корзину, а владельцу - добавлять новые товары"
 
             api_app = container "API Application" {
                 description "Предоставляет функционал интернет-магазина"
@@ -27,7 +26,7 @@ workspace {
 
             group "Слой данных" {
                 user_db = container "User Database" {
-                    description "Реляционная БД, содержащая информацию о пользователях"
+                    description "Реляционная СУБД, содержащая информацию о пользователях"
                     technology "PostgreSQL 15"
                     tags "database"
                 }
@@ -39,13 +38,13 @@ workspace {
                 }
 
                 shop_db = container "Shop Database" {
-                    description "Документоориентированная БД, содержащая информацию о товарах магазина"
+                    description "Документоориентированная СУБД, содержащая информацию о товарах магазина"
                     technology "MongoDB"
                     tags "database"
                 }
 
                 shopping_cart_db = container "Shopping Cart Database" {
-                    description "Документоориентированная БД, содержащая информацию о содержимом корзин пользователей"
+                    description "Документоориентированная СУБД, содержащая информацию о содержимом корзин пользователей"
                     technology "MongoDB"
                     tags "database"
                 }
@@ -59,13 +58,60 @@ workspace {
             user -> api_app "Просмотр товаров и добавление их в корзину" "REST HTTP:8000"
             shop_owner -> api_app "Добавление товара в магазин" "REST HTTP:8000"
         }
+
+        deploymentEnvironment "Production" {
+            deploymentNode "API Application Server" {
+                containerInstance api_app
+                instances 1
+                properties {
+                    "CPU" "2"
+                    "RAM" "4Gb"
+                    "HDD" "16Gb"
+                }
+            }
+
+            deploymentNode "Databases Server" {
+
+                deploymentNode "Database Server 1" {
+                    containerInstance user_db
+                    instances 3
+                }
+
+                deploymentNode "Database Server 2" {
+                    containerInstance user_cache
+                    instances 1
+                }
+
+                deploymentNode "Database Server 3" {
+                    containerInstance shop_db
+                    instances 3
+                }
+
+                deploymentNode "Database Server 4" {
+                    containerInstance shopping_cart_db
+                    instances 3
+                }
+            }
+        }
     }
-views {
-    themes default
-    styles {
+
+    views {
+        themes default
+
+        properties { 
+            structurizr.tooltips true
+        }
+
+        !script groovy {
+            workspace.views.createDefaultViews()
+            workspace.views.views.findAll { it instanceof
+            com.structurizr.view.ModelView }.each { it.enableAutomaticLayout() }
+        }
+
+        styles {
             element "database" {
                 shape cylinder
             }
         }
-    }   
+    }
 }
