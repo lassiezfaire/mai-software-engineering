@@ -59,9 +59,6 @@ workspace {
             user -> api_app "Просмотр товаров и добавление их в корзину" "REST HTTP:8000"
             shop_owner -> api_app "Добавление товара в магазин" "REST HTTP:8000"
         }
-
-        user -> online_shop "Покупки в магазине" "REST HTTP:8000"
-        shop_owner -> online_shop "Администрирование магазина" "REST HTTP:8000"
     }
 views {
     themes default
