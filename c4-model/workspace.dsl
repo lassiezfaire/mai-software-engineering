@@ -47,6 +47,9 @@ workspace {
             shop_owner -> api_app "Добавление товара в магазин" "REST HTTP:8000"
         }
 
+        user -> online_shop "Просмотр товаров и добавление их в корзину. Поиск других пользователей" "REST HTTP:8080"
+        shop_owner -> online_shop "Администрирование магазина: добавление и удаление товаров" "REST HTTP:8080"
+
         deploymentEnvironment "Production" {
             
             deploymentNode "node0" {
@@ -75,20 +78,30 @@ workspace {
     views {
         themes default
 
-        systemContext online_shop "systemContext" {
-            include *
-            autoLayout
+        properties { 
+            structurizr.tooltips true
         }
 
-        container online_shop "container" {
-            include *
-            autoLayout
+        !script groovy {
+            workspace.views.createDefaultViews()
+            workspace.views.views.findAll { it instanceof
+            com.structurizr.view.ModelView }.each { it.enableAutomaticLayout() }
         }
 
-        deployment online_shop "Production" "deployment" {
-            include *
-            autoLayout
-        }
+        // systemContext online_shop "systemContext" {
+        //     include *
+        //     autoLayout
+        // }
+
+        // container online_shop "container" {
+        //     include *
+        //     autoLayout
+        // }
+
+        // deployment online_shop "Production" "deployment" {
+        //     include *
+        //     autoLayout
+        // }
 
         dynamic online_shop "UC01" "Создание нового пользователя" {
             autoLayout
