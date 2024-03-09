@@ -60,13 +60,51 @@ workspace {
         }
 
         deploymentEnvironment "Production" {
-            deploymentNode "API Application Server" {
+            
+            deploymentNode "node0" {
+                description "Главная нода для запуска uvicorn и Redis"
                 containerInstance api_app
-                instances 1
+                containerInstance user_cache
                 properties {
                     "CPU" "2"
                     "RAM" "4Gb"
                     "HDD" "16Gb"
+                }
+            }
+
+            deploymentNode "node1" {
+                description "Нода для запуска PostgreSQL и MongoDB"
+                containerInstance user_db
+                containerInstance shop_db
+                containerInstance shopping_cart_db
+                properties {
+                    "CPU" "2"
+                    "RAM" "4Gb"
+                    "HDD" "32Gb"
+                }
+            }
+
+            deploymentNode "node2" {
+                description "Нода для запуска PostgreSQL и MongoDB"
+                containerInstance user_db
+                containerInstance shop_db
+                containerInstance shopping_cart_db
+                properties {
+                    "CPU" "2"
+                    "RAM" "4Gb"
+                    "HDD" "32Gb"
+                }
+            }
+
+            deploymentNode "node3" {
+                description "Нода для запуска PostgreSQL и MongoDB"
+                containerInstance user_db
+                containerInstance shop_db
+                containerInstance shopping_cart_db
+                properties {
+                    "CPU" "2"
+                    "RAM" "4Gb"
+                    "HDD" "32Gb"
                 }
             }
 
@@ -106,6 +144,21 @@ workspace {
             workspace.views.createDefaultViews()
             workspace.views.views.findAll { it instanceof
             com.structurizr.view.ModelView }.each { it.enableAutomaticLayout() }
+        }
+
+        systemContext online_shop "systemContext" {
+            include *
+            autoLayout
+        }
+
+        container online_shop "container" {
+            include *
+            autoLayout
+        }
+
+        deployment online_shop "Production" "deployment" {
+            include *
+            autoLayout
         }
 
         styles {
