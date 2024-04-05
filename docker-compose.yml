@@ -1,0 +1,26 @@
+services:
+  user:
+    build:
+      context: .
+      dockerfile: user/Dockerfile
+    container_name: user-service
+    environment:
+      - "POSTGRES_URI=postgres:5432"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASS=changeme"
+    ports:
+      - "8000:8000"
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: online_shop
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
