@@ -30,9 +30,9 @@ def read_user(id: int):
 
 
 @router.get("/", summary="Получить список всех пользователей", response_model=List[UserRead])
-def read_all_users(limit: int = 100):
+def read_all_users(limit: int = 100, start_pos: int = 0):
     print("Запрос всех пользователей...", end='')
-    users = User.read_all(limit=limit)
+    users = User.read_all(limit=limit, start_pos=start_pos)
     print(f" получено записей: {len(users)}.")
     return users
 

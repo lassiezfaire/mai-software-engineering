@@ -41,9 +41,9 @@ class UserBase(SQLModel):
             return user
 
     @classmethod
-    def read_all(cls, limit: int = 100):
+    def read_all(cls, limit: int = 100, start_pos: int = 0):
         with Session(engine) as session:
-            statement = select(User).limit(limit)
+            statement = select(User).limit(limit).offset(start_pos)
             users = session.exec(statement).all()
             return users
 

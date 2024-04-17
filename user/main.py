@@ -14,4 +14,4 @@ def on_startup():
 app.include_router(user_router, tags=["Пользователи"], prefix="/user")
 
 # run fastapi app:
-# uvicorn main:app --reload --host 0.0.0.0 --env-file production\environment.env
+# uvicorn main:app --reload --host 0.0.0.0 --port 8001 --env-file environment.env
