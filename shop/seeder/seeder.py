@@ -2,6 +2,7 @@ import random
 import requests
 import ast
 from typing import List
+import os
 
 from databases.mongo_repository import database
 from products.model import Clothes
@@ -39,7 +40,7 @@ def seed_clothes(number: int = 500):
             clothes_list.append(clothes)
 
 
-def seed_shopping_cart(postgres_uri: str, mongo_uri: str, number: int = 500):
+def seed_shopping_cart(user_server_uri: str, shop_server_uri: str, number: int = 500):
     def get_user_id(start_pos: int = 0, limit: int = 100) -> int:
 
         headers = {
@@ -51,7 +52,7 @@ def seed_shopping_cart(postgres_uri: str, mongo_uri: str, number: int = 500):
             'start_pos': str(start_pos),
         }
 
-        response = requests.get(f'{postgres_uri}/user/', params=params, headers=headers)
+        response = requests.get(f'{user_server_uri}/user/', params=params, headers=headers)
         users = ast.literal_eval(response.text)
         user_id = random.choice(users)['id']
 
@@ -67,7 +68,7 @@ def seed_shopping_cart(postgres_uri: str, mongo_uri: str, number: int = 500):
             'start_pos': str(start_pos),
         }
 
-        response = requests.get(f'{mongo_uri}/clothes/', params=params, headers=headers)
+        response = requests.get(f'{shop_server_uri}/clothes/', params=params, headers=headers)
         products = ast.literal_eval(response.text)
 
         products_num = random.randint(2, 10)
@@ -91,4 +92,7 @@ if init == 1:
     init_database()
 
 seed_clothes()
-seed_shopping_cart(postgres_uri='http://localhost:8001', mongo_uri='http://localhost:8000')
+
+user_server_uri = os.getenv("USER_URI")
+shop_server_uri = os.getenv("SHOP_URI")
+seed_shopping_cart(user_server_uri=user_server_uri, shop_server_uri=shop_server_uri)
