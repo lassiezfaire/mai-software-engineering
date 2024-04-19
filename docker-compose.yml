@@ -10,6 +10,18 @@ services:
       - "POSTGRES_PASS=changeme"
     ports:
       - "8000:8000"
+  shop:
+    build:
+      context: .
+      dockerfile: shop/Dockerfile
+    container_name: shop-service
+    environment:
+      - "MONGO_URI=mongodb://mongo:27017/"
+      - "DB_NAME=online-shop"
+      - "USER_URI=http://shop-service:8000"
+      - "SHOP_URI=http://user-service:8001"
+    ports:
+      - "8001:8000"
 
   postgres:
     image: postgres:latest
@@ -21,6 +33,14 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
 
 volumes:
   pgdata:
+  mongodata:

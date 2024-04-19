@@ -49,7 +49,7 @@ class MongoRepository(BaseModel):
     @classmethod
     def read_all(cls, limit: int = 100, start_pos: int = 0):
         collection = cls.collection_name()
-        items = list(database[collection].find(limit=limit).skip(start_pos - 1))
+        items = list(database[collection].find(limit=limit).skip(start_pos))
         for item in items:
             item['_id'] = str(item['_id'])
         return items
