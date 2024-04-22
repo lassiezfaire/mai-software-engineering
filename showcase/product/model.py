@@ -1,18 +1,9 @@
-import os
-
 from bson import ObjectId as _ObjectId
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import AfterValidator
-from pymongo import MongoClient
 from typing_extensions import Annotated
 
-try:
-    mongo_client = MongoClient(os.getenv("MONGO_URI"))
-    database = mongo_client[os.getenv("DB_NAME")]
-
-    print("Connected to MongoDB")
-except Exception as e:
-    print(f"Error: {e}")
+from .db import database
 
 
 def check_object_id(value: str) -> str:
@@ -24,12 +15,13 @@ def check_object_id(value: str) -> str:
 ObjectId = Annotated[str, AfterValidator(check_object_id)]
 
 
-class MongoUpdate(BaseModel):
-    pass
+class ProductUpdate(BaseModel):
+    name: str
 
 
-class MongoRepository(BaseModel):
+class Product(BaseModel):
     id: ObjectId | None = Field(alias="_id", default_factory=ObjectId)
+    name: str = Field(...)
 
     class Config:
         populate_by_name = True
@@ -64,7 +56,7 @@ class MongoRepository(BaseModel):
         return item
 
     @classmethod
-    def update(cls, id: ObjectId, item: MongoUpdate):
+    def update(cls, id: ObjectId, item: ProductUpdate):
         collection = cls.collection_name()
         item = database[collection].update_one({'_id': id},
                                                {'$set': item.model_dump(exclude={"id"})}, upsert=True)

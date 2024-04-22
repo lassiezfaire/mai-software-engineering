@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from user.db import create_db_and_tables
-from user.routes import router as user_router
+from shopping_cart.db import create_db_and_tables
+from shopping_cart.routes import router as cart_router
 
 app = FastAPI()
 
@@ -17,7 +17,7 @@ def on_startup():
     create_db_and_tables()
 
 
-app.include_router(user_router, tags=["Пользователи"], prefix="/user")
+app.include_router(cart_router, tags=["Корзины"], prefix="/cart")
 
 # run fastapi app:
-# uvicorn main:app --reload --host 0.0.0.0 --port 8000 --env-file environment.env
+# uvicorn main:app --reload --host 0.0.0.0 --port 8002 --env-file environment.env

@@ -67,6 +67,7 @@ class UserBase(SQLModel):
     def update(cls, id: int, user: UserUpdate):
         with Session(engine) as session:
             db_user = session.get(User, id)
+            print(db_user)
             if not db_user:
                 return None
             user_data = user.model_dump(exclude_unset=True)
@@ -86,10 +87,10 @@ class UserBase(SQLModel):
     @classmethod
     def delete(cls, id: int):
         with Session(engine) as session:
-            hero = session.get(User, id)
-            if not hero:
+            user = session.get(User, id)
+            if not user:
                 return None
-            session.delete(hero)
+            session.delete(user)
             session.commit()
             return {"ok": True}
 
