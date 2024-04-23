@@ -178,7 +178,7 @@ showcase_subj = 'clothes'
 cart_url = os.getenv("CART_URL")
 cart_subj = 'cart'
 
-clear = 0
+clear = 1
 if clear == 1:
     clear_table(url=user_url, subj=user_subj)
     clear_table(url=showcase_url, subj=showcase_subj)

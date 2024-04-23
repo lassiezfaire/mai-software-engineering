@@ -10,18 +10,27 @@ services:
       - "POSTGRES_PASS=changeme"
     ports:
       - "8000:8000"
-  shop:
+  showcase:
     build:
       context: .
-      dockerfile: shop/Dockerfile
-    container_name: shop-service
+      dockerfile: showcase/Dockerfile
+    container_name: showcase-service
     environment:
       - "MONGO_URI=mongodb://mongo:27017/"
       - "DB_NAME=online-shop"
-      - "USER_URI=http://shop-service:8000"
-      - "SHOP_URI=http://user-service:8001"
     ports:
       - "8001:8000"
+  shopping_cart:
+    build:
+      context: .
+      dockerfile: shopping_cart/Dockerfile
+    container_name: shopping_cart-service
+    environment:
+      - "POSTGRES_URI=postgres:5432"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASS=changeme"
+    ports:
+      - "8002:8000"
 
   postgres:
     image: postgres:latest
