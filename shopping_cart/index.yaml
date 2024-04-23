@@ -1,18 +1,18 @@
 openapi: 3.0.3
 info:
-  title: User
+  title: Shopping_cart
   version: 1.0.0
   contact: {}
 servers:
 - url: /
 paths:
-  /user/{id}:
+  /cart/user/{user_id}/:
     get:
       tags:
-      - user
-      - '{id}'
-      summary: Получить пользователя по id
-      description: Получить пользователя по id
+      - cart
+      - user/{user_id}
+      summary: Получить корзину по id пользователя
+      description: Получить корзину по id пользователя
       operationId: id
       responses:
         '200':
@@ -20,31 +20,42 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    example: <integer>
-                  name:
-                    type: string
-                    example: <string>
-                  nickname:
-                    type: string
-                    example: <string>
-                  password:
-                    type: string
-                    example: <string>
-                  surname:
-                    type: string
-                    example: <string>
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: <integer>
+                    product_amount:
+                      type: number
+                      example: 1
+                    product_id:
+                      type: string
+                      example: <string>
+                    user_id:
+                      type: string
+                      example: <integer>
+                example:
+                - id: <integer>
+                  product_amount: 1
+                  product_id: <string>
+                  user_id: <integer>
+                - id: <integer>
+                  product_amount: 1
+                  product_id: <string>
+                  user_id: <integer>
               examples:
                 Successful Response:
                   value:
-                    id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
+                  - id: <integer>
+                    product_amount: 1
+                    product_id: <string>
+                    user_id: <integer>
+                  - id: <integer>
+                    product_amount: 1
+                    product_id: <string>
+                    user_id: <integer>
         '422':
           description: Validation Error
           content:
@@ -98,10 +109,303 @@ paths:
                       type: <string>
     delete:
       tags:
-      - user
-      - '{id}'
-      summary: Удалить пользователя по id
-      description: Удалить пользователя по id
+      - cart
+      - user/{user_id}
+      summary: Удалить корзину по id пользователя
+      description: Удалить корзину по id пользователя
+      operationId: id1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+              examples:
+                Successful Response:
+                  value: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          items:
+                            type: string
+                            example: <string>
+                          example:
+                          - <string>
+                          - <string>
+                        msg:
+                          type: string
+                          example: <string>
+                        type:
+                          type: string
+                          example: <string>
+                    example:
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+              examples:
+                Validation Error:
+                  value:
+                    detail:
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+    parameters:
+    - name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: <integer>
+      description: '(Required) '
+  /cart/:
+    get:
+      tags:
+      - cart
+      summary: Получить список всех записей
+      description: Получить список всех записей
+      operationId: '1'
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: string
+          example: '100'
+      - name: start_pos
+        in: query
+        schema:
+          type: string
+          example: '0'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: <integer>
+                    product_amount:
+                      type: number
+                      example: 1
+                    product_id:
+                      type: string
+                      example: <string>
+                    user_id:
+                      type: string
+                      example: <integer>
+                example:
+                - id: <integer>
+                  product_amount: 1
+                  product_id: <string>
+                  user_id: <integer>
+                - id: <integer>
+                  product_amount: 1
+                  product_id: <string>
+                  user_id: <integer>
+              examples:
+                Successful Response:
+                  value:
+                  - id: <integer>
+                    product_amount: 1
+                    product_id: <string>
+                    user_id: <integer>
+                  - id: <integer>
+                    product_amount: 1
+                    product_id: <string>
+                    user_id: <integer>
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          items:
+                            type: string
+                            example: <string>
+                          example:
+                          - <string>
+                          - <string>
+                        msg:
+                          type: string
+                          example: <string>
+                        type:
+                          type: string
+                          example: <string>
+                    example:
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+              examples:
+                Validation Error:
+                  value:
+                    detail:
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+    post:
+      tags:
+      - cart
+      summary: Добавить товар в корзину (создать запись)
+      description: Добавить товар в корзину (создать запись)
+      operationId: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_amount:
+                  type: number
+                  example: 1
+                product_id:
+                  type: string
+                  example: <string>
+                user_id:
+                  type: string
+                  example: <integer>
+            examples:
+              Добавить товар в корзину (создать запись):
+                value:
+                  product_amount: 1
+                  product_id: <string>
+                  user_id: <integer>
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: <integer>
+                  product_amount:
+                    type: number
+                    example: 1
+                  product_id:
+                    type: string
+                    example: <string>
+                  user_id:
+                    type: string
+                    example: <integer>
+              examples:
+                Successful Response:
+                  value:
+                    id: <integer>
+                    product_amount: 1
+                    product_id: <string>
+                    user_id: <integer>
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          items:
+                            type: string
+                            example: <string>
+                          example:
+                          - <string>
+                          - <string>
+                        msg:
+                          type: string
+                          example: <string>
+                        type:
+                          type: string
+                          example: <string>
+                    example:
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+              examples:
+                Validation Error:
+                  value:
+                    detail:
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+                    - loc:
+                      - <string>
+                      - <string>
+                      msg: <string>
+                      type: <string>
+  /cart/{id}:
+    delete:
+      tags:
+      - cart
+      summary: Удалить запись по id
+      description: Удалить запись по id
       operationId: id2
       responses:
         '200':
@@ -165,38 +469,21 @@ paths:
                       - <string>
                       msg: <string>
                       type: <string>
-    patch:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: <integer>
+      description: '(Required) '
+  /cart/product/{product_id}/:
+    delete:
       tags:
-      - user
-      - '{id}'
-      summary: Обновить данные пользователя по id
-      description: Обновить данные пользователя по id
-      operationId: id1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: <string>
-                nickname:
-                  type: string
-                  example: <string>
-                password:
-                  type: string
-                  example: <string>
-                surname:
-                  type: string
-                  example: <string>
-            examples:
-              Обновить данные пользователя по id:
-                value:
-                  name: <string>
-                  nickname: <string>
-                  password: <string>
-                  surname: <string>
+      - cart
+      summary: Удалить записи по id товара
+      description: Удалить записи по id товара
+      operationId: id3
       responses:
         '200':
           description: Successful Response
@@ -204,30 +491,10 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  id:
-                    type: string
-                    example: <integer>
-                  name:
-                    type: string
-                    example: <string>
-                  nickname:
-                    type: string
-                    example: <string>
-                  password:
-                    type: string
-                    example: <string>
-                  surname:
-                    type: string
-                    example: <string>
+                properties: {}
               examples:
                 Successful Response:
-                  value:
-                    id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
+                  value: {}
         '422':
           description: Validation Error
           content:
@@ -280,461 +547,14 @@ paths:
                       msg: <string>
                       type: <string>
     parameters:
-    - name: id
+    - name: product_id
       in: path
       required: true
       schema:
         type: string
-        example: <integer>
+        example: <string>
       description: '(Required) '
-  /user/:
-    get:
-      tags:
-      - user
-      summary: Получить список всех пользователей
-      description: Получить список всех пользователей
-      operationId: '1'
-      parameters:
-      - name: limit
-        in: query
-        schema:
-          type: string
-          example: '100'
-      - name: start_pos
-        in: query
-        schema:
-          type: string
-          example: '0'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      example: <integer>
-                    name:
-                      type: string
-                      example: <string>
-                    nickname:
-                      type: string
-                      example: <string>
-                    password:
-                      type: string
-                      example: <string>
-                    surname:
-                      type: string
-                      example: <string>
-                example:
-                - id: <integer>
-                  name: <string>
-                  nickname: <string>
-                  password: <string>
-                  surname: <string>
-                - id: <integer>
-                  name: <string>
-                  nickname: <string>
-                  password: <string>
-                  surname: <string>
-              examples:
-                Successful Response:
-                  value:
-                  - id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
-                  - id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        loc:
-                          type: array
-                          items:
-                            type: string
-                            example: <string>
-                          example:
-                          - <string>
-                          - <string>
-                        msg:
-                          type: string
-                          example: <string>
-                        type:
-                          type: string
-                          example: <string>
-                    example:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-              examples:
-                Validation Error:
-                  value:
-                    detail:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-    post:
-      tags:
-      - user
-      summary: Создать нового пользователя
-      description: Создать нового пользователя
-      operationId: ''
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: <string>
-                nickname:
-                  type: string
-                  example: <string>
-                password:
-                  type: string
-                  example: <string>
-                surname:
-                  type: string
-                  example: <string>
-            examples:
-              Создать нового пользователя:
-                value:
-                  name: <string>
-                  nickname: <string>
-                  password: <string>
-                  surname: <string>
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    example: <integer>
-                  name:
-                    type: string
-                    example: <string>
-                  nickname:
-                    type: string
-                    example: <string>
-                  password:
-                    type: string
-                    example: <string>
-                  surname:
-                    type: string
-                    example: <string>
-              examples:
-                Successful Response:
-                  value:
-                    id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        loc:
-                          type: array
-                          items:
-                            type: string
-                            example: <string>
-                          example:
-                          - <string>
-                          - <string>
-                        msg:
-                          type: string
-                          example: <string>
-                        type:
-                          type: string
-                          example: <string>
-                    example:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-              examples:
-                Validation Error:
-                  value:
-                    detail:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-  /user/name_find/:
-    get:
-      tags:
-      - user
-      summary: Найти пользователей по маске имени и фамилии
-      description: Найти пользователей по маске имени и фамилии
-      operationId: '2'
-      parameters:
-      - name: name_mask
-        in: query
-        schema:
-          type: string
-          example: <string>
-        description: '(Required) '
-      - name: surname_mask
-        in: query
-        schema:
-          type: string
-          example: <string>
-        description: '(Required) '
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      example: <integer>
-                    name:
-                      type: string
-                      example: <string>
-                    nickname:
-                      type: string
-                      example: <string>
-                    password:
-                      type: string
-                      example: <string>
-                    surname:
-                      type: string
-                      example: <string>
-                example:
-                - id: <integer>
-                  name: <string>
-                  nickname: <string>
-                  password: <string>
-                  surname: <string>
-                - id: <integer>
-                  name: <string>
-                  nickname: <string>
-                  password: <string>
-                  surname: <string>
-              examples:
-                Successful Response:
-                  value:
-                  - id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
-                  - id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        loc:
-                          type: array
-                          items:
-                            type: string
-                            example: <string>
-                          example:
-                          - <string>
-                          - <string>
-                        msg:
-                          type: string
-                          example: <string>
-                        type:
-                          type: string
-                          example: <string>
-                    example:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-              examples:
-                Validation Error:
-                  value:
-                    detail:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-  /user/nick_find/:
-    get:
-      tags:
-      - user
-      summary: Найти пользователя по никнейму
-      description: Найти пользователя по никнейму
-      operationId: '3'
-      parameters:
-      - name: nickname
-        in: query
-        schema:
-          type: string
-          example: <string>
-        description: '(Required) '
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    example: <integer>
-                  name:
-                    type: string
-                    example: <string>
-                  nickname:
-                    type: string
-                    example: <string>
-                  password:
-                    type: string
-                    example: <string>
-                  surname:
-                    type: string
-                    example: <string>
-              examples:
-                Successful Response:
-                  value:
-                    id: <integer>
-                    name: <string>
-                    nickname: <string>
-                    password: <string>
-                    surname: <string>
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        loc:
-                          type: array
-                          items:
-                            type: string
-                            example: <string>
-                          example:
-                          - <string>
-                          - <string>
-                        msg:
-                          type: string
-                          example: <string>
-                        type:
-                          type: string
-                          example: <string>
-                    example:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-              examples:
-                Validation Error:
-                  value:
-                    detail:
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
-                    - loc:
-                      - <string>
-                      - <string>
-                      msg: <string>
-                      type: <string>
 tags:
-- name: user
-- name: '{id}'
+- name: cart
+- name: user/{user_id}
 

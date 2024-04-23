@@ -1,8 +1,8 @@
 FROM python:3.11-bookworm
 
-WORKDIR /shop
+WORKDIR /showcase
 
-COPY shop/requirements.txt ./requirements.txt
+COPY showcase/requirements.txt ./requirements.txt
 
 RUN python3 -m venv .venv
 RUN . .venv/bin/activate
@@ -13,12 +13,9 @@ RUN pip install --no-cache-dir 'uvicorn[standard]'
 
 EXPOSE 8000
 
-COPY shop . 
+COPY showcase . 
 
-ENV PYTHONPATH "${PYTHONPATH}:/shop/databases"
-ENV PYTHONPATH "${PYTHONPATH}:/shop/product"
-ENV PYTHONPATH "${PYTHONPATH}:/shop/products"
-ENV PYTHONPATH "${PYTHONPATH}:/shop/seeder"
-ENV PYTHONPATH "${PYTHONPATH}:/shop/shopping_cart"
+ENV PYTHONPATH "${PYTHONPATH}:/showcase/product"
+ENV PYTHONPATH "${PYTHONPATH}:/showcase/products"
 
 ENTRYPOINT uvicorn main:app --reload --host 0.0.0.0

@@ -20,7 +20,7 @@ def clear_table(url: str, subj: str):
     check = [1]
     check_count = 1
 
-    if subj == 'user':
+    if (subj == 'user') or (subj == 'cart'):
         id_form = 'id'
     elif subj == 'clothes':
         id_form = '_id'
@@ -122,17 +122,68 @@ def seed_showcase(url: str, amount: int = 1000) -> str:
     return f'Создано {amount - not_created} предметов одежды, не создано - {not_created}.'
 
 
+def seed_carts(url: str, user_url: str, showcase_url: str, amount: int = 1000) -> str:
+    def get_id(subj: str, url: str, start_pos: int = 0, limit: int = 100):
+        headers = {
+            'accept': 'application/json',
+        }
+
+        params = {
+            'limit': str(limit),
+            'start_pos': str(start_pos),
+        }
+
+        if subj == 'user':
+            id_form = 'id'
+        elif subj == 'clothes':
+            id_form = '_id'
+
+        response = requests.get(f'{url}/{subj}/', params=params, headers=headers)
+        entries = ast.literal_eval(response.text)
+        id = random.choice(entries)[id_form]
+
+        return id
+
+    for _ in range(amount):
+        user_id = get_id(subj='user', url=user_url)
+        product_id = get_id(subj='clothes', url=showcase_url)
+        product_amount = random.randint(2, 10)
+
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+
+        json_data = {
+            'user_id': user_id,
+            'product_id': product_id,
+            'product_amount': product_amount,
+        }
+
+        response = requests.post(f'{url}/cart/', headers=headers, json=json_data)
+        print(f"Создана запись корзины: "
+              f"user_id: {user_id}, "
+              f"product_id: {product_id}, "
+              f"product_amount: {product_amount}...")
+
+    return f'Создано {amount} записей корзины'
+
+
 user_url = os.getenv("USER_URL")
 user_subj = 'user'
 
 showcase_url = os.getenv("SHOWC_URL")
 showcase_subj = 'clothes'
 
-clear = 1
+cart_url = os.getenv("CART_URL")
+cart_subj = 'cart'
+
+clear = 0
 if clear == 1:
     clear_table(url=user_url, subj=user_subj)
     clear_table(url=showcase_url, subj=showcase_subj)
+    clear_table(url=cart_url, subj=cart_subj)
 
-print(seed_users(url=user_url))
-print(seed_showcase(url=showcase_url))
-
+print(seed_users(url=user_url, amount=500))
+print(seed_showcase(url=showcase_url, amount=500))
+print(seed_carts(url=cart_url, user_url=user_url, showcase_url=showcase_url, amount=500))
