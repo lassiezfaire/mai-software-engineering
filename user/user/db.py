@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from sqlmodel import create_engine, SQLModel
+from sqlmodel import create_engine, SQLModel, Session
 
 load_dotenv('../production/environment.env')
 
@@ -13,6 +13,8 @@ db_name = 'online_shop'
 connection_string = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_URI}/{db_name}'
 
 engine = create_engine(connection_string, echo=True)
+
+session = Session(engine)
 
 
 def create_db_and_tables():

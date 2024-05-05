@@ -1,6 +1,6 @@
-from sqlmodel import Field, SQLModel, Session, select, delete
+from sqlmodel import Field, SQLModel, select, delete
 
-from .db import engine, session
+from .db import session
 
 
 class CartBase(SQLModel):

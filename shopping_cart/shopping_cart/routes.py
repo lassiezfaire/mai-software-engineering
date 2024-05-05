@@ -1,15 +1,18 @@
+import os
 from typing import List
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from .model import Cart, CartCreate, CartRead
+from .security import check_jwt
 
 router = APIRouter()
 
 
 @router.post("/", summary="Добавить товар в корзину (создать запись)", response_model=CartRead)
-def create_entry(entry: CartCreate):
+def create_entry(token: str, entry: CartCreate):
+    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
     print("Создаём новую запись...", end='')
     entry = entry.add_to_cart()
     print(" успешно.")
@@ -17,7 +20,8 @@ def create_entry(entry: CartCreate):
 
 
 @router.get("/", summary="Получить список всех записей", response_model=List[CartRead])
-def read_all_entries(limit: int = 100, start_pos: int = 0):
+def read_all_entries(token: str, limit: int = 100, start_pos: int = 0):
+    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
     print("Запрос всех записей...", end='')
     entries = Cart.read_all(limit=limit, start_pos=start_pos)
     print(f" получено записей: {len(entries)}.")
@@ -25,7 +29,8 @@ def read_all_entries(limit: int = 100, start_pos: int = 0):
 
 
 @router.get("/user/{user_id}/", summary="Получить корзину по id пользователя", response_model=List[CartRead])
-def read_cart(user_id: int):
+def read_cart(token: str, user_id: int):
+    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
     print("Запрос корзины...", end='')
     entries = Cart.read_by_user(user_id=user_id)
     print(f" получено записей: {len(entries)}.")
@@ -49,7 +54,8 @@ def read_cart(user_id: int):
 
 
 @router.delete('/{id}', summary="Удалить запись по id")
-def delete_entry(id: int):
+def delete_entry(token: str, id: int):
+    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
     print(f"Удаление записи с id = {id}...", end='')
     deleted = Cart.delete(id)
     print(" успешно")
@@ -57,7 +63,8 @@ def delete_entry(id: int):
 
 
 @router.delete("/user/{user_id}/", summary="Удалить корзину по id пользователя")
-def read_cart(user_id: int):
+def read_cart(token: str, user_id: int):
+    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
     print(f"Удаление корзины пользователя с id = {user_id}...", end='')
     deleted = Cart.delete_by_user(user_id=user_id)
     print(f" успешно.")
@@ -65,7 +72,8 @@ def read_cart(user_id: int):
 
 
 @router.delete("/product/{product_id}/", summary="Удалить записи по id товара")
-def read_cart(product_id: str):
+def read_cart(token: str, product_id: str):
+    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
     print(f"Удаление корзины пользователя с id = {product_id}...", end='')
     deleted = Cart.delete_by_product(product_id=product_id)
     print(f" успешно.")
