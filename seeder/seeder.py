@@ -8,14 +8,38 @@ import requests
 fake = Faker()
 
 
-def clear_table(url: str, subj: str):
+def get_token(nickname: str, password: str, url: str):
+    headers = {
+        'accept': 'application/json',
+        'content-type': 'application/x-www-form-urlencoded',
+    }
+
+    params = {
+        'nickname': nickname,
+        'password': password,
+    }
+
+    response = requests.post(f'{url}/user/auth', params=params, headers=headers)
+    token = response.text
+
+    return token
+
+
+def clear_table(url: str, subj: str, token: str = ""):
     headers = {
         'accept': 'application/json',
     }
 
-    params = {
-        'limit': '100',
-    }
+    if subj == 'user' or subj == 'clothes':
+        params = {
+            'limit': '100',
+        }
+    else:
+        params = {
+            'token': token,
+            'limit': '100',
+            'start_pos': '0',
+        }
 
     check = [1]
     check_count = 1
@@ -46,7 +70,8 @@ def clear_table(url: str, subj: str):
         check_count += 1
 
 
-def seed_users(url: str, amount: int = 1000) -> str:
+def seed_users(url: str, amount: int = 1000) -> tuple[str, str]:
+    global nickname
     not_created = 0
 
     for _ in range(amount):
@@ -78,10 +103,12 @@ def seed_users(url: str, amount: int = 1000) -> str:
                   f"nickname: {nickname}, "
                   f"password: {password}...")
 
-    return f'Создано {amount - not_created} пользователей, не создано - {not_created}.'
+    token = get_token(url=url, nickname=nickname, password=password)[1:-1]
+
+    return f'Создано {amount - not_created} пользователей, не создано - {not_created}.', token
 
 
-def seed_showcase(url: str, amount: int = 1000) -> str:
+def seed_showcase(url: str, token: str, amount: int = 1000) -> str:
     not_created = 0
     clothes_list = []
     name = ["H&M", "Zara", "Uniqlo", "Forever 21", "Gap", "Old Navy", "Primark", "Topshop", "Mango",
@@ -105,13 +132,17 @@ def seed_showcase(url: str, amount: int = 1000) -> str:
                 'Content-Type': 'application/json',
             }
 
+            params = {
+                'token': token,
+            }
+
             json_data = {
                 'name': random_name,
                 'type': random_type,
                 'colour': random_colour,
             }
 
-            response = requests.post(f'{url}/clothes/', headers=headers, json=json_data)
+            response = requests.post(f'{url}/clothes/', headers=headers, params=params, json=json_data)
 
             print(f"Создан предмет одежды: "
                   f"name: {random_name}, "
@@ -122,7 +153,7 @@ def seed_showcase(url: str, amount: int = 1000) -> str:
     return f'Создано {amount - not_created} предметов одежды, не создано - {not_created}.'
 
 
-def seed_carts(url: str, user_url: str, showcase_url: str, amount: int = 1000) -> str:
+def seed_carts(url: str, user_url: str, showcase_url: str, token: str, amount: int = 1000) -> str:
     def get_id(subj: str, url: str, start_pos: int = 0, limit: int = 100):
         headers = {
             'accept': 'application/json',
@@ -154,13 +185,17 @@ def seed_carts(url: str, user_url: str, showcase_url: str, amount: int = 1000) -
             'Content-Type': 'application/json',
         }
 
+        params = {
+            'token': token,
+        }
+
         json_data = {
             'user_id': user_id,
             'product_id': product_id,
             'product_amount': product_amount,
         }
 
-        response = requests.post(f'{url}/cart/', headers=headers, json=json_data)
+        response = requests.post(f'{url}/cart/', headers=headers, params=params, json=json_data)
         print(f"Создана запись корзины: "
               f"user_id: {user_id}, "
               f"product_id: {product_id}, "
@@ -178,12 +213,24 @@ showcase_subj = 'clothes'
 cart_url = os.getenv("CART_URL")
 cart_subj = 'cart'
 
-clear = 1
-if clear == 1:
-    clear_table(url=user_url, subj=user_subj)
-    clear_table(url=showcase_url, subj=showcase_subj)
-    clear_table(url=cart_url, subj=cart_subj)
+amount = 500
 
-print(seed_users(url=user_url, amount=500))
-print(seed_showcase(url=showcase_url, amount=500))
-print(seed_carts(url=cart_url, user_url=user_url, showcase_url=showcase_url, amount=500))
+clear = 1
+try:
+    if clear == 1:
+        clear_table(url=user_url, subj=user_subj)
+except ValueError:
+    print("Возможно, таблицы пусты. Очистка не выполнена.")
+
+users_info, token = seed_users(url=user_url, amount=amount)
+print(token)
+
+try:
+    if clear == 1:
+        clear_table(url=showcase_url, subj=showcase_subj, token=token)
+        clear_table(url=cart_url, subj=cart_subj, token=token)
+except ValueError:
+    print("Возможно, таблицы пусты. Очистка не выполнена.")
+
+print(seed_showcase(url=showcase_url, amount=amount, token=token))
+print(seed_carts(url=cart_url, user_url=user_url, showcase_url=showcase_url, amount=amount, token=token))

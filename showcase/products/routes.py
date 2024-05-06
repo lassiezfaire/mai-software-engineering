@@ -21,8 +21,7 @@ def create_clothes(token: str, clothes: ClothesUpdate = Body(...)):
 
 
 @router.get("/", summary="Получить список всех предметов одежды", response_model=List[Clothes])
-def read_all(token: str, limit: int = 100, start_pos: int = 0):
-    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
+def read_all(limit: int = 100, start_pos: int = 0):
     print("Запрос всех предметов одежды...", end='')
     clothes = Clothes.read_all(limit=limit, start_pos=start_pos)
     print("  успешно")
@@ -30,7 +29,7 @@ def read_all(token: str, limit: int = 100, start_pos: int = 0):
 
 
 @router.get("/{id}", summary="Получить предмет одежды по id", response_model=Clothes)
-def read(str, id: str):
+def read(id: str):
     print(f"Запрос предмета одежды с id = {id}...", end='')
     try:
         clothes = Clothes.read(id=ObjectId(id))
