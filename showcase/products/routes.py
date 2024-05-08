@@ -13,7 +13,8 @@ router = APIRouter()
 
 @router.post("/", summary="Создать новый предмет одежды", response_model=Clothes)
 def create_clothes(token: str, clothes: ClothesUpdate = Body(...)):
-    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
+    if check_jwt(token=token, secret_key=os.environ["SECRET_JWT"]) is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Неверный токен")
     print("Создаём новый предмет одежды...", end='')
     clothes = Clothes(name=clothes.name, type=clothes.type, colour=clothes.colour).create()
     print(" успешно.")
@@ -45,7 +46,8 @@ def read(id: str):
 
 @router.patch("/{id}", summary="Изменить предмет одежды по id")
 def update(token: str, id: str, clothes: ClothesUpdate):
-    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
+    if check_jwt(token=token, secret_key=os.environ["SECRET_JWT"]) is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Неверный токен")
     print(f"Обновление предмета одежды с id = {id}...", end='')
     try:
         clothes = Clothes.update(id=ObjectId(id), item=clothes)
@@ -58,7 +60,8 @@ def update(token: str, id: str, clothes: ClothesUpdate):
 
 @router.delete("/{id}", summary="Удалить предмет одежды по id")
 def delete(token: str, id: str):
-    check_jwt(token=token, secret_key=os.environ["SECRET_JWT"])
+    if check_jwt(token=token, secret_key=os.environ["SECRET_JWT"]) is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Неверный токен")
     print(f"Обновление предмета одежды с id = {id}...", end='')
     print(f"Удаление предмета одежды с id = {id}...", end='')
     try:

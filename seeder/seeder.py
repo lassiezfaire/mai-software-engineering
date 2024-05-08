@@ -25,46 +25,61 @@ def get_token(nickname: str, password: str, url: str):
     return token
 
 
-def clear_table(url: str, subj: str, token: str = ""):
+def create_test_user(url: str):
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+    }
+
+    json_data = {
+        'name': 'test',
+        'surname': 'test',
+        'nickname': 'test_user',
+        'password': 'password',
+    }
+
+    requests.post(f'{url}/user/', headers=headers, json=json_data)
+    token = get_token(url=url, nickname='test_user', password='password')
+
+    return token
+
+
+def clear_table(url: str, subj: str, token: str):
     headers = {
         'accept': 'application/json',
     }
 
-    if subj == 'user' or subj == 'clothes':
-        params = {
-            'limit': '100',
-        }
-    else:
+    if subj == 'cart':
         params = {
             'token': token,
-            'limit': '100',
-            'start_pos': '0',
         }
+    else:
+        params = {}
 
     check = [1]
     check_count = 1
 
-    if (subj == 'user') or (subj == 'cart'):
-        id_form = 'id'
-    elif subj == 'clothes':
+    if subj == 'clothes':
         id_form = '_id'
+    else:
+        id_form = 'id'
 
     while check:
         response = requests.get(f'{url}/{subj}/', params=params, headers=headers)
         entries_list = ast.literal_eval(response.text)
-        entries_ids = []
 
         if len(entries_list) == 0:
             break
 
         print(f'Проверка {check_count}, найдено {len(entries_list)} записей из 100.')
 
-        for _ in entries_list:
-            entries_ids.append(_[id_form])
+        for entry in entries_list:
+            params = {
+                'token': token,
+            }
 
-        for _ in entries_ids:
-            requests.delete(f'{url}/{subj}/{_}', headers=headers)
-            print(f'Удалена запись с id={_}...')
+            requests.delete(f'{url}/{subj}/{entry[id_form]}', params=params, headers=headers)
+            print(f'Удалена запись с id={entry[id_form]}...')
 
         check = entries_list
         check_count += 1
@@ -215,10 +230,11 @@ cart_subj = 'cart'
 
 amount = 500
 
-clear = 1
+clear = 0
 try:
     if clear == 1:
-        clear_table(url=user_url, subj=user_subj)
+        test_token = create_test_user(url=user_url)
+        clear_table(url=user_url, subj=user_subj, token=test_token)
 except ValueError:
     print("Возможно, таблицы пусты. Очистка не выполнена.")
 

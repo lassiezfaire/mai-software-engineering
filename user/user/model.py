@@ -1,12 +1,15 @@
 import os
 from datetime import datetime
+import json
+import random
 
 import jwt
 from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, status
 from sqlmodel import Field, SQLModel, select
+from sqlalchemy.exc import IntegrityError
 
-from .db import session
+from .db import session, redis_client
 from .security import hash_password, check_password
 
 
@@ -26,11 +29,14 @@ class UserBase(SQLModel):
     def create(self):
         self.password = hash_password(self.password)
 
-        db_user = User.model_validate(self)
-        session.add(db_user)
-        session.commit()
-        session.refresh(db_user)
-        return db_user
+        user = User.model_validate(self)
+        session.add(user)
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            return None
+        return user
 
     @classmethod
     def auth(cls, nickname: str, password: str):
@@ -59,7 +65,17 @@ class UserBase(SQLModel):
 
     @classmethod
     def read(cls, id: int):
-        user = session.get(User, id)
+        if redis_client.exists(id):
+            json_user = redis_client.get(id)
+            data_user = json.loads(json_user)
+            print(f'Пользователь c id={id} прочитан из кэша')
+            user = User(**data_user)
+        else:
+            user = session.get(User, id)
+            json_user = user.json()
+            redis_client.set(name=id, value=json_user)
+            print(f'Пользователь c id={id} добавлен в кэш')
+            redis_client.expire(name=id, time=3600)
         return user
 
     @classmethod
@@ -83,6 +99,18 @@ class UserBase(SQLModel):
         return user
 
     @classmethod
+    def get_random_cache(cls, limit: int = 100, start_pos: int = 0):
+        id = random.randint(start_pos, limit)
+        user = User.read(id=id)
+        return user
+
+    # @classmethod
+    # def get_random(cls, limit: int = 100, start_pos: int = 0):
+    #     id = random.randint(start_pos, limit)
+    #     user = session.get(User, id)
+    #     return user
+
+    @classmethod
     def update(cls, id: int, user: UserUpdate):
         db_user = session.get(User, id)
         print(db_user)
@@ -97,6 +125,11 @@ class UserBase(SQLModel):
             extra_data["password"] = hashed_password
 
         db_user.sqlmodel_update(user_data, update=extra_data)
+
+        json_user = db_user.json()
+        redis_client.set(name=id, value=json_user)
+        redis_client.expire(name=id, time=3600)
+
         session.add(db_user)
         session.commit()
         session.refresh(db_user)
