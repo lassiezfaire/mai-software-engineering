@@ -1,4 +1,15 @@
 services:
+  gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    environment:
+      - "USER_URL=http://user-service:8000"
+      - "SHOWC_URL=http://showcase-service:8001"
+      - "CART_URL=http://shopping_cart-service:8002"
+    ports:
+      - "8080:8000"
   user:
     build:
       context: .

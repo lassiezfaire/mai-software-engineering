@@ -1,6 +1,7 @@
 import json
 import os
 
+from circuitbreaker import circuit
 from fastapi import APIRouter, HTTPException, status
 import requests
 
@@ -12,6 +13,7 @@ CART_URL = os.getenv('CART_URL')
 
 
 @router.get("/", summary='Любой GET-запрос')
+@circuit(failure_threshold=5, recovery_timeout=30)
 def get_request(endpoint: str):
     service, request = endpoint.split('/')[0], endpoint.split('/')[1:]
 
@@ -35,6 +37,7 @@ def get_request(endpoint: str):
 
 
 @router.post("/", summary='Любой POST-запрос')
+@circuit(failure_threshold=5, recovery_timeout=30)
 def post_request(endpoint: str, json_data: dict = {}):
     service, request = endpoint.split('/')[0], endpoint.split('/')[1:]
 
@@ -57,6 +60,7 @@ def post_request(endpoint: str, json_data: dict = {}):
 
 
 @router.patch("/", summary='Любой PATCH-запрос')
+@circuit(failure_threshold=5, recovery_timeout=30)
 def patch_request(endpoint: str, json_data: dict = {}):
     service, request = endpoint.split('/')[0], endpoint.split('/')[1:]
 
@@ -79,6 +83,7 @@ def patch_request(endpoint: str, json_data: dict = {}):
 
 
 @router.delete("/", summary='Любой DELETE-запрос')
+@circuit(failure_threshold=5, recovery_timeout=30)
 def delete_request(endpoint: str):
     service, request = endpoint.split('/')[0], endpoint.split('/')[1:]
 
