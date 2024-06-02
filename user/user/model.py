@@ -137,6 +137,8 @@ class UserBase(SQLModel):
 
     @classmethod
     def delete(cls, id: int):
+        if redis_client.exists(id):
+            redis_client.delete(id)
         user = session.get(User, id)
         if not user:
             return None
