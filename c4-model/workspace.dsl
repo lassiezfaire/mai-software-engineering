@@ -7,21 +7,37 @@ workspace {
             description "Пользователь интернет магазина, обладающий личным аккаунтом"
         }
 
-        shop_owner = person "Владелец интернет-магазина" {
-            description "Владелец интернет магазина, добавляющий в него товары"
-        }
-
         online_shop = softwareSystem "Интернет-магазин" {
-            description "Интернет-магазин, позволяющий пользователю просматривать товары и добавлять их в корзину, а владельцу - добавлять новые товары"
+            description "Интернет-магазин, позволяющий пользователям просматривать и добавлять новые товары, а также добавлять их в корзину"
 
-            api_app = container "API Application" {
-                description "Предоставляет функционал интернет-магазина"
-                technology "Python / REST API"
+            front_service = container "UI Application" {
+                description "Предоставляет пользователям возможность взаимодействия с магазином через браузер"
+                technology "HTML/CSS/JS"
+            }
+
+            api_gateway = container "API Gateway" {
+                description "Проксирует запросы к сервисам, реализует Circuit Breaker"
+                technology "Python/FastAPI"
+            }
+
+            user_service = container "User Service" {
+                description "Микросервис для работы с данными пользователей и выдачи JWT-токенов"
+                technology "Python/FastAPI"
+            }
+
+            showcase_service = container "Showcase Service" {
+                description "Микросервис для работы с витриной (т.е. с данными товаров)"
+                technology "Python/FastAPI"
+            }
+
+            cart_service = container "Cart Service" {
+                description "Микросервис для работы с корзиной пользователя"
+                technology "Python/FastAPI"
             }
 
             group "Слой данных" {
-                user_db = container "User Database" {
-                    description "Реляционная СУБД, содержащая информацию о пользователях"
+                user_db = container "User and Cart Database" {
+                    description "Реляционная СУБД, содержащая информацию о пользователях и их корзинах"
                     technology "PostgreSQL"
                     tags "database"
                 }
@@ -32,29 +48,41 @@ workspace {
                     tags "database"
                 }
 
-                shop_db = container "Goods and Cart Database" {
-                    description "Документоориентированная СУБД, содержащая информацию о товарах и о корзинах пользователей"
+                showcase_db = container "Showcase Database" {
+                    description "Документоориентированная СУБД, содержащая информацию о товарах"
                     technology "MongoDB"
                     tags "database"
                 }
             }
+            
+            front_service -> api_gateway "Перенаправление пользовательских запросов в микросервисы" "TCP:8080"
 
-            api_app -> user_db "Получение или обновление данных о пользователе" "TCP:5432"
-            api_app -> user_cache "Получение или обновление данных о пользователе" "TCP:6379"
-            api_app -> shop_db "Получение или обвноление данных о товаре и о корзине пользователя" "TCP:27017"
+            api_gateway -> user_service "Получение запроса о работе с данными пользователей или получении JWT-токена" "TCP:8000"
+            api_gateway -> showcase_service "Получение запроса о работе с витриной (данными товаров)" "TCP:8001"
+            api_gateway -> cart_service "Получение запроса о работе с данными пользовательских корзин" "TCP:8002"
 
-            user -> api_app "Создание нового пользователя, получение списка товаров и добавление товара в корзину" "REST HTTP:8000"
-            shop_owner -> api_app "Поиск пользователя по логину или по маске имя и фамилии, создание товара, получение корзины для пользователя" "REST HTTP:8000"
+            user_service -> user_db "Манипуляции с данными пользователей" "TCP:5432"
+            user_service -> user_cache "Манипуляции с данными пользователей" "TCP:6379"
+            showcase_service -> showcase_db "Манипуляции с данными товаров" "TCP:27017"
+            cart_service -> user_db "Манипуляции с данными корзин пользователей" "TCP:5432"
         }
 
-        user -> online_shop "Просмотр товаров и добавление их в корзину" "REST HTTP:8080"
-        shop_owner -> online_shop "Администрирование магазина" "REST HTTP:8080"
+        user -> front_service "Регистрация/авторизация/добавление товара в корзину и т.п." "REST HTTP:8000"
 
         deploymentEnvironment "Production" {
             
             deploymentNode "node0" {
-                description "Главная нода для запуска REST API приложения и Redis"
-                containerInstance api_app
+                description "Нода для запуска фронт-энд приложения"
+                containerInstance front_service
+                properties {
+                    "RAM" "4Gb"
+                    "HDD" "16Gb"
+                }
+            }
+
+            deploymentNode "node1" {
+                description "Нода для запуска API Gateway и Redis"
+                containerInstance api_gateway
                 containerInstance user_cache
                 properties {
                     "RAM" "4Gb"
@@ -62,10 +90,37 @@ workspace {
                 }
             }
 
-            deploymentNode "nodeN (N = 1, 2, 3)" {
+            deploymentNode "node2" {
+                description "Нода для запуска User Service"
+                containerInstance user_service
+                properties {
+                    "RAM" "4Gb"
+                    "HDD" "16Gb"
+                }
+            }
+
+            deploymentNode "node3" {
+                description "Нода для запуска Showcase Service"
+                containerInstance showcase_service
+                properties {
+                    "RAM" "4Gb"
+                    "HDD" "16Gb"
+                }
+            }
+
+            deploymentNode "node4" {
+                description "Нода для запуска Cart Service"
+                containerInstance cart_service
+                properties {
+                    "RAM" "4Gb"
+                    "HDD" "16Gb"
+                }
+            }
+
+            deploymentNode "nodeN (N = 5, 6, 7)" {
                 description "Нода для запуска СУБД - PostgreSQL и MongoDB"
                 containerInstance user_db
-                containerInstance shop_db
+                containerInstance showcase_db
                 instances 3
                 properties {
                     "RAM" "4Gb"
@@ -105,47 +160,59 @@ workspace {
 
         dynamic online_shop "UC01" "Создание нового пользователя" {
             autoLayout
-            user -> api_app "Регистрация нового пользователя (POST /user)"
-            api_app -> user_db "Сохранение данных пользователя"
-            api_app -> user_cache "Сохранение данных пользователя в кэш"
+            user -> front_service "Регистрация нового пользователя"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (POST user/)"
+            api_gateway -> user_service "Проксирование запроса"
+            user_service -> user_db "Сохранение данных пользователя"
+            user_service -> user_cache "Сохранение данных пользователя в кэш"
         }
 
         dynamic online_shop "UC02" "Поиск пользователя по логину" {
             autoLayout
-            user -> api_app "Поиск пользователя по {login}  (GET /user)"
-            api_app -> user_cache "Получение данных пользователя по {login}"
-            api_app -> user_db "Получение данных пользователя по {login}, если их не было в кэше"
+            user -> front_service "Поиск пользователя по {login} в интерфейсе"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (GET user/)"
+            api_gateway -> user_service "Проксирование запроса"
+            user_service -> user_db "Получение данных пользователя по {login}"
         }
 
         dynamic online_shop "UC03" "Поиск пользователя по маске имя и фамилии" {
             autoLayout
-            user -> api_app "Поиск пользователя по {mask}  (GET /user)"
-            api_app -> user_cache "Получение данных пользователя по {mask}"
-            api_app -> user_db "Получение данных пользователя по {mask}, если их не было в кэше"
+            user -> front_service "Поиск пользователя по {mask} в интерфейсе"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (GET user/)"
+            api_gateway -> user_service "Проксирование запроса"
+            user_service -> user_db "Получение данных пользователя по {mask}"
         }
 
         dynamic online_shop "UC04" "Создание товара" {
             autoLayout
-            shop_owner -> api_app "Создание нового товара (POST /good)"
-            api_app -> shop_db "Сохранение информации о товаре"
+            user -> front_service "Создание нового товара в интерфейсе"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (POST clothes/)"
+            api_gateway -> showcase_service "Проксирование запроса"
+            showcase_service -> showcase_db "Сохранение информации о товаре"
         }
 
         dynamic online_shop "UC05" "Получение списка товаров" {
             autoLayout
-            shop_owner -> api_app "Получение списка товаров (GET /good)"
-            api_app -> shop_db "Выгрузка списка товаров из СУБД"
+            user -> front_service "Получение списка товаров в интерфейсе"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (GET clothes/)"
+            api_gateway -> showcase_service "Проксирование запроса"
+            showcase_service -> showcase_db "Выгрузка списка товаров из СУБД"
         }
 
         dynamic online_shop "UC06" "Добавление товара в корзину" {
             autoLayout
-            user -> api_app "Добавление товара в корзину (POST /cart/good)"
-            api_app -> shop_db "Сохранение информации о корзине"
+            user -> front_service "Добавление товара в корзину в интерфейсе"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (POST cart/clothes/)"
+            api_gateway -> cart_service "Проксирование запроса"
+            cart_service -> user_db "Сохранение информации о корзине"
         }
 
         dynamic online_shop "UC07" "Получение корзины для пользователя" {
             autoLayout
-            user -> api_app "Получение корзины для пользователя (POST /cart/good)"
-            api_app -> shop_db "Выгрузка корзины для пользователя из СУБД"
+            user -> front_service "Получение корзины для пользователя в интерфейсе"
+            front_service -> api_gateway "Отправка запроса с фронт-энда (POST cart/user/)"
+            api_gateway -> cart_service "Проксирование запроса"
+            cart_service -> user_db "Выгрузка корзины для пользователя из СУБД"
         }
 
         styles {
